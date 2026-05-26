@@ -2290,7 +2290,15 @@
       const res = await fetch(LIST_URL, { cache: 'no-store' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
-      return Array.isArray(data) ? data.map(e => String(e).toLowerCase().trim()) : [];
+      // 支援兩種格式：
+      // 1) ["email1", "email2"]               ← 舊格式（純名單）
+      // 2) {"email1": "姓名1", "email2": "姓名2"} ← 新格式（含中文備註）
+      if (Array.isArray(data)) {
+        return data.map(e => String(e).toLowerCase().trim());
+      } else if (data && typeof data === 'object') {
+        return Object.keys(data).map(e => String(e).toLowerCase().trim());
+      }
+      return [];
     } catch (e) {
       console.warn('Email 門禁：無法載入授權名單', e);
       return null;
